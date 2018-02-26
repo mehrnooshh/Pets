@@ -11,8 +11,8 @@ import android.widget.TextView;
 import com.example.android.pets.data.PetContract;
 
 /**
- * {@link PetCursorAdapter} is an adapter for a list or grid view
- * that uses a {@link Cursor} of pet data as its data source. This adapter knows
+ * {@link PetCursorAdapter} is an mCursorAdapter for a list or grid view
+ * that uses a {@link Cursor} of pet data as its data source. This mCursorAdapter knows
  * how to create list items for each row of pet data in the {@link Cursor}.
  */
 public class PetCursorAdapter extends CursorAdapter {

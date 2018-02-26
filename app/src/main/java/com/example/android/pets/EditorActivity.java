@@ -75,7 +75,7 @@ public class EditorActivity extends AppCompatActivity {
      * Setup the dropdown spinner that allows the user to select the gender of the pet.
      */
     private void setupSpinner() {
-        // Create adapter for spinner. The list options are from the String array it will use
+        // Create mCursorAdapter for spinner. The list options are from the String array it will use
         // the spinner will use the default layout
         ArrayAdapter genderSpinnerAdapter = ArrayAdapter.createFromResource(this,
                 R.array.array_gender_options, android.R.layout.simple_spinner_item);
@@ -83,7 +83,7 @@ public class EditorActivity extends AppCompatActivity {
         // Specify dropdown layout style - simple list view with 1 item per line
         genderSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
 
-        // Apply the adapter to the spinner
+        // Apply the mCursorAdapter to the spinner
         mGenderSpinner.setAdapter(genderSpinnerAdapter);
 
         // Set the integer mSelected to the constant values
