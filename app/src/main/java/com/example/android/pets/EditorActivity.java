@@ -193,9 +193,15 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String nameString = mNameEditText.getText().toString().trim();
         String breedString = mBreedEditText.getText().toString().trim();
         String weightString = mWeightEditText.getText().toString().trim();
-        int weight = 0;
-        if (!"".equals(weightString)) {
-            weight = Integer.parseInt(weightString);
+
+        // Check if this is supposed to be a new pet
+        // and check if all the fields in the editor are blank
+        if (mCurrentPetUri == null && TextUtils.isEmpty(nameString) &&
+                TextUtils.isEmpty(breedString) &&
+                TextUtils.isEmpty(weightString) && mGender == PetEntry.GENDER_UNKNOWN) {
+            // Since no fields were modified, we can return early without creating a new pet.
+            // No need to create ContentValues and no need to do any ContentProvider operations.
+            return;
         }
 
         // Create a ContentValues object where column names are the keys,
@@ -204,6 +210,14 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         values.put(PetEntry.COLUMN_PET_NAME, nameString);
         values.put(PetEntry.COLUMN_PET_BREED, breedString);
         values.put(PetEntry.COLUMN_PET_GENDER, mGender);
+
+        // If the weight is not provided by the user, don't try to parse the string into an
+        // integer value. Use 0 by default.
+        int weight = 0;
+        if (!TextUtils.isEmpty(weightString)) {
+            weight = Integer.parseInt(weightString);
+        }
+
         values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
 
         //If the intent DOES NOT contain a pet content URI, the we know that we are
@@ -223,94 +237,94 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                         Toast.LENGTH_SHORT).show();
             }
         }
-            //If the intent DOES NOT contain a pet content URI, then we know that we are
-            //creating a new pet.
-         else {
-              // Otherwise this is an EXISTING pet, so update the pet with content URI: mCurrentPetUri
-              // and pass in the new ContentValues. Pass in null for the selection and selection args
-              // because mCurrentPetUri will already identify the correct row in the database that
-              // we want to modify.
-               int rowsAffected = getContentResolver().update(mCurrentPetUri, values, null, null);
+        //If the intent DOES NOT contain a pet content URI, then we know that we are
+        //creating a new pet.
+        else {
+            // Otherwise this is an EXISTING pet, so update the pet with content URI: mCurrentPetUri
+            // and pass in the new ContentValues. Pass in null for the selection and selection args
+            // because mCurrentPetUri will already identify the correct row in the database that
+            // we want to modify.
+            int rowsAffected = getContentResolver().update(mCurrentPetUri, values, null, null);
 
-               if (rowsAffected ==0){
-                   // If no rows were affected, then there was an error with the update.
-                   Toast.makeText(this, getString(R.string.editor_update_pet_failed), Toast.LENGTH_SHORT).show();
-               }
-               else {
-                   // Otherwise, the update was successful and we can display a toast.
-                   Toast.makeText(this, R.string.editor_update_pet_successful, Toast.LENGTH_SHORT).show();
-               }
+            if (rowsAffected ==0){
+                // If no rows were affected, then there was an error with the update.
+                Toast.makeText(this, getString(R.string.editor_update_pet_failed), Toast.LENGTH_SHORT).show();
             }
-        }
-
-        @Override
-        public Loader onCreateLoader(int i, Bundle bundle) {
-            // Since the editor shows all pet attributes, define a projection that contains
-            // all columns from the pet table
-            String[] projection = {
-                    PetEntry._ID,
-                    PetEntry.COLUMN_PET_NAME,
-                    PetEntry.COLUMN_PET_BREED,
-                    PetEntry.COLUMN_PET_GENDER,
-                    PetEntry.COLUMN_PET_WEIGHT};
-
-            // This loader will execute the ContentProvider's query method on a background thread
-            return new CursorLoader(this,   // Parent activity context
-                    mCurrentPetUri,         // Query the content URI for the current pet
-                    projection,             // Columns to include in the resulting Cursor
-                    null,                   // No selection clause
-                    null,                   // No selection arguments
-                    null);                  // Default sort order
-        }
-
-        @Override
-        public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-            // Content URI for the existing pet (null if it's a new pet)
-            if (cursor == null || cursor.getCount() < 1)
-                return;
-            // Proceed with moving to the first row of the cursor and reading data from it
-            // (This should be the only row in the cursor)
-            if (cursor.moveToFirst()) {
-                // Find the columns of pet attributes that we're interested in
-                int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
-                int breedColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED);
-                int genderColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER);
-                int weightColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT);
-
-                // Extract out the value from the Cursor for the given column index
-                String name = cursor.getString(nameColumnIndex);
-                String breed = cursor.getString(breedColumnIndex);
-                int gender = cursor.getInt(genderColumnIndex);
-                int weight = cursor.getInt(weightColumnIndex);
-                // Update the views on the screen with the values from the database
-                mNameEditText.setText(name);
-                mBreedEditText.setText(breed);
-                mWeightEditText.setText(Integer.toString(weight));
-                // Gender is a dropdown spinner, so map the constant value from the database
-                // into one of the dropdown options (0 is Unknown, 1 is Male, 2 is Female).
-                // Then call setSelection() so that option is displayed on screen as the current selection.
-                switch (gender) {
-                    case PetEntry.GENDER_MALE:
-                        mGenderSpinner.setSelection(1);
-                        break;
-                    case PetEntry.GENDER_FEMALE:
-                        mGenderSpinner.setSelection(2);
-                        break;
-                    default:
-                        mGenderSpinner.setSelection(0);
-                        break;
-                }
+            else {
+                // Otherwise, the update was successful and we can display a toast.
+                Toast.makeText(this, R.string.editor_update_pet_successful, Toast.LENGTH_SHORT).show();
             }
-
-        }
-
-        @Override
-        public void onLoaderReset(Loader loader) {
-            // If the loader is invalidated, clear out all the data from the input fields.
-            mNameEditText.setText("");
-            mBreedEditText.setText("");
-            mWeightEditText.setText("");
-            mGenderSpinner.setSelection(0);// Select "Unknown" gender
-
         }
     }
+
+    @Override
+    public Loader onCreateLoader(int i, Bundle bundle) {
+        // Since the editor shows all pet attributes, define a projection that contains
+        // all columns from the pet table
+        String[] projection = {
+                PetEntry._ID,
+                PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN_PET_BREED,
+                PetEntry.COLUMN_PET_GENDER,
+                PetEntry.COLUMN_PET_WEIGHT};
+
+        // This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,   // Parent activity context
+                mCurrentPetUri,         // Query the content URI for the current pet
+                projection,             // Columns to include in the resulting Cursor
+                null,                   // No selection clause
+                null,                   // No selection arguments
+                null);                  // Default sort order
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        // Content URI for the existing pet (null if it's a new pet)
+        if (cursor == null || cursor.getCount() < 1)
+            return;
+        // Proceed with moving to the first row of the cursor and reading data from it
+        // (This should be the only row in the cursor)
+        if (cursor.moveToFirst()) {
+            // Find the columns of pet attributes that we're interested in
+            int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
+            int breedColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED);
+            int genderColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER);
+            int weightColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT);
+
+            // Extract out the value from the Cursor for the given column index
+            String name = cursor.getString(nameColumnIndex);
+            String breed = cursor.getString(breedColumnIndex);
+            int gender = cursor.getInt(genderColumnIndex);
+            int weight = cursor.getInt(weightColumnIndex);
+            // Update the views on the screen with the values from the database
+            mNameEditText.setText(name);
+            mBreedEditText.setText(breed);
+            mWeightEditText.setText(Integer.toString(weight));
+            // Gender is a dropdown spinner, so map the constant value from the database
+            // into one of the dropdown options (0 is Unknown, 1 is Male, 2 is Female).
+            // Then call setSelection() so that option is displayed on screen as the current selection.
+            switch (gender) {
+                case PetEntry.GENDER_MALE:
+                    mGenderSpinner.setSelection(1);
+                    break;
+                case PetEntry.GENDER_FEMALE:
+                    mGenderSpinner.setSelection(2);
+                    break;
+                default:
+                    mGenderSpinner.setSelection(0);
+                    break;
+            }
+        }
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader loader) {
+        // If the loader is invalidated, clear out all the data from the input fields.
+        mNameEditText.setText("");
+        mBreedEditText.setText("");
+        mWeightEditText.setText("");
+        mGenderSpinner.setSelection(0);// Select "Unknown" gender
+
+    }
+}
