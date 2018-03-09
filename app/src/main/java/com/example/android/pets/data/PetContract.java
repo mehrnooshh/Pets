@@ -72,9 +72,9 @@ public final class PetContract {
 
         /** Possible values for the gender of pets
          */
-        public static final int GENDER_MALE = 0 ;
-        public static final int GENDER_FEMALE = 1;
-        public static final int GENDER_UNKNOWN = 2;
+        public static final int GENDER_MALE = 1 ;
+        public static final int GENDER_FEMALE = 2;
+        public static final int GENDER_UNKNOWN = 0;
 
         /**
          * Returns whether or not the given gender is {@link #GENDER_UNKNOWN}, {@link #GENDER_MALE},
