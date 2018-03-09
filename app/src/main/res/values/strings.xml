@@ -103,4 +103,17 @@
 
     <!-- Dialog button text for the option to cancel deletion of the current pet [CHAR LIMIT=20] -->
     <string name="cancel">Cancel</string>
+
+    <!-- Dialog message when user is leaving editor but hasn't saved changes [CHAR LIMIT=NONE] -->
+    <string name="delete_all_pets_dialog_msg">Are you sure to delete all pets?</string>
+
+    <!-- Dialog button text for the option to discard a user's changes [CHAR LIMIT=20] -->
+    <string name="discard_deleting_all_pets">Discard</string>
+
+    <!-- Dialog button text for the option to keep editing the current pet [CHAR LIMIT=20] -->
+    <string name="keep_deleting_all_pets">Keep deleting</string>
+
+    <!-- Toast message for Delete all pets-->
+    <string name="delete_all_pets_toast_msg">Deleted all pets</string>
+
 </resources>
